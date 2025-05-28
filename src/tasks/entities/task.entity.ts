@@ -5,4 +5,5 @@ export class Task {
 	status: string = 'created';
 	created_at: Date;
 	updated_at: Date;
+	pendingSync?: boolean = false;
 }

@@ -12,6 +12,8 @@ import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 
+import { Task } from './entities/task.entity';
+
 @Controller('tasks')
 export class TasksController {
 	constructor(private readonly tasksService: TasksService) {}
@@ -39,5 +41,10 @@ export class TasksController {
 	@Delete(':id')
 	remove(@Param('id') id: string) {
 		return this.tasksService.remove(+id);
+	}
+
+	@Post('/sync')
+	sync(@Body() Tasks: Task[]) {
+		return this.tasksService.sync(Tasks);
 	}
 }

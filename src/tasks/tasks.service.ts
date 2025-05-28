@@ -144,4 +144,41 @@ export class TasksService {
 			data: findTask,
 		};
 	}
+
+	sync(tasks: Task[]): responseData {
+		// This method is a placeholder for syncing tasks with an external service
+
+		const taskNotSync = tasks.filter((task) => {
+			return task.pendingSync;
+		});
+
+		taskNotSync.forEach((task) => {
+			if (task.id < 0) {
+				const newTask: Task = {
+					id: Math.floor(Math.random() * 100),
+					title: task.title,
+					description: task.description,
+					status: 'created',
+					created_at: new Date(),
+					updated_at: new Date(),
+					pendingSync: task.pendingSync,
+				};
+				listTaks.push(newTask);
+			} else {
+				const findTask = listTaks.find((t) => t.id === task.id);
+				if (findTask) {
+					findTask.title = task.title;
+					findTask.description = task.description;
+					findTask.status = task.status;
+					findTask.updated_at = new Date();
+				}
+			}
+		});
+
+		return {
+			error: false,
+			msg: 'Sync completed',
+			data: null,
+		};
+	}
 }
