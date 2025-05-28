@@ -1,98 +1,109 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Task Manager Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Este proyecto es una API RESTful desarrollada con [NestJS](https://nestjs.com/) y TypeScript, diseñada para gestionar tareas y soportar sincronización offline/online. Utiliza TypeORM para la gestión de datos y SQLite como base de datos local, facilitando el desarrollo y pruebas rápidas.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+---
 
-## Description
+## Justificación de la elección de tecnologías
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- **NestJS**: Framework progresivo para Node.js que permite estructurar aplicaciones escalables y mantenibles, con soporte nativo para TypeScript y principios SOLID.
+- **TypeScript**: Proporciona tipado estático, mejorando la calidad del código y la experiencia de desarrollo.
+- **TypeORM**: ORM maduro y flexible que facilita la integración con múltiples bases de datos y el manejo de entidades.
+- **SQLite**: Base de datos ligera y embebida, ideal para entornos de desarrollo y pruebas rápidas sin necesidad de configuración adicional.
+- **pnpm**: Gestor de paquetes rápido y eficiente, que optimiza el uso de espacio en disco y la instalación de dependencias.
 
-## Project setup
+---
 
-```bash
-$ pnpm install
-```
+## Implementación de la sincronización offline/online
 
-## Compile and run the project
+La sincronización está implementada en el método [`TasksService.sync`](src/tasks/tasks.service.ts), permitiendo que las tareas creadas o modificadas mientras el usuario está offline se almacenen localmente y se sincronicen con el backend cuando la conexión se restablece.
 
-```bash
-# development
-$ pnpm run start
+### Flujo de sincronización
 
-# watch mode
-$ pnpm run start:dev
+1. **Modo Offline**:
 
-# production mode
-$ pnpm run start:prod
-```
+   - Las tareas se almacenan localmente (por ejemplo, en localstorage en el frontend).
+   - Se marca cada tarea con `pendingSync: true` para indicar que requiere sincronización.
 
-## Run tests
+2. **Modo Online**:
+   - Al recuperar la conexión, el frontend envía las tareas pendientes al endpoint de sincronización.
+   - El backend procesa cada tarea:
+     - Si la tarea es nueva (`id < 0`), se crea en la base de datos.
+     - Si la tarea ya existe, se actualiza.
+   - Tras la sincronización, las tareas se marcan como sincronizadas (`pendingSync: false`).
 
-```bash
-# unit tests
-$ pnpm run test
+---
 
-# e2e tests
-$ pnpm run test:e2e
+## Detalles técnicos relevantes
 
-# test coverage
-$ pnpm run test:cov
-```
+- **Almacenamiento local**:  
+  El almacenamiento offline se realiza en el frontend, usando tecnologías como IndexedDB o LocalStorage. El backend está preparado para recibir lotes de tareas pendientes de sincronización.
 
-## Deployment
+- **Políticas de reintento**:  
+  El frontend puede implementar reintentos automáticos en caso de fallo de sincronización, reenviando las tareas hasta recibir confirmación del backend.
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+- **Manejo de errores**:  
+  El backend responde con mensajes claros en caso de error (por ejemplo, tarea no encontrada o error de validación). El frontend debe interpretar estos mensajes y decidir si reintentar o notificar al usuario.
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+- **Integración con TypeORM**:  
+  Todas las operaciones de persistencia se realizan mediante el repositorio de TypeORM, asegurando transacciones seguras y consistentes.
+
+---
+
+## Instrucciones para ejecutar el proyecto
+
+### 1. Clonar el repositorio
 
 ```bash
-$ pnpm install -g @nestjs/mau
-$ mau deploy
+git clone <URL_DEL_REPOSITORIO>
+cd backend
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### 2. Instalar dependencias
 
-## Resources
+```bash
+pnpm install
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+### 3. Configurar la base de datos
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+- Asegúrate de tener SQLite instalado y accesible en tu PATH.
+- Crea un archivo `.env` en la raíz del proyecto basado en el archivo `.env.example`, y configura las variables de entorno según tus necesidades.
 
-## Support
+### 4. Ejecutar las migraciones
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+```bash
+pnpm typeorm migration:run
+```
 
-## Stay in touch
+### 5. Iniciar el servidor
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+```bash
+pnpm start
+```
 
-## License
+---
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+## Endpoints principales
+
+- `POST /tasks/sync`: Sincroniza tareas entre el cliente y el servidor.
+- `GET /tasks`: Obtiene la lista de tareas.
+- `POST /tasks`: Crea una nueva tarea.
+- `PUT /tasks/:id`: Actualiza una tarea existente.
+- `DELETE /tasks/:id`: Elimina una tarea.
+
+---
+
+## Ejemplo de sincronización
+
+1. El usuario crea una tarea en el frontend mientras está offline.
+2. La tarea se almacena en localstorage con `pendingSync: true`.
+3. Cuando el usuario vuelve a estar online, el frontend envía la tarea al backend.
+4. El backend recibe la tarea y la guarda en la base de datos.
+5. El backend responde confirmando la creación o actualización de la tarea.
+6. El frontend recibe la respuesta y actualiza el estado de la tarea a `pendingSync: false`.
+
+---
+
+Aunque es una prueba tecnica, tengo pensado trabajar más en este proyecto y mejorar las funcionalidades para que sea un sistema completo y robusto.
+Tengo pensado impelementar un sistema de registro de usuarios y que las tareas esten vinculadas con un usuario, y así no sea un sistema para una persona sino que apra muchas personas.
