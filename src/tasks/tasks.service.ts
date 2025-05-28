@@ -160,6 +160,7 @@ export class TasksService {
 		// delete
 		findTask.status = 'deleted';
 		findTask.updated_at = new Date();
+		findTask.pendingSync = false;
 
 		const response = await this.taskRepository.save(findTask);
 
@@ -186,7 +187,7 @@ export class TasksService {
 					status: 'created',
 					created_at: new Date(),
 					updated_at: new Date(),
-					pendingSync: task.pendingSync,
+					pendingSync: false,
 				};
 				const createTask = this.taskRepository.create({
 					...newTask,
@@ -204,6 +205,7 @@ export class TasksService {
 					findTask.description = task.description;
 					findTask.status = task.status;
 					findTask.updated_at = new Date();
+					findTask.pendingSync = false;
 					await this.taskRepository.save(findTask);
 				}
 			}
