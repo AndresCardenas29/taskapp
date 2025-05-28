@@ -23,6 +23,7 @@ const listTaks = [
 		status: 'created',
 		created_at: new Date(),
 		updated_at: new Date(),
+		pendingSync: false,
 	},
 ];
 @Injectable()
@@ -35,6 +36,7 @@ export class TasksService {
 			status: 'created',
 			created_at: new Date(),
 			updated_at: new Date(),
+			pendingSync: false,
 		};
 		listTaks.push(dta);
 		return dta;
